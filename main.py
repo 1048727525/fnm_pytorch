@@ -146,7 +146,7 @@ class FNM(object):
             alpha = torch.rand(gen_p.size(0), 1, 1, 1).to(self.device)
             inter = (alpha * front_224.data + (1 - alpha) * gen_p.data).requires_grad_(True)
             out_inter = self.dis(inter)
-            gradient_penalty_loss = (gradient_penalty(out_inter[0], inter, self.device) + gradient_penalty(out_inter[1], inter, self.device) + gradient_penalty(out_inter[2], inter, self.device) + gradient_penalty(out_inter[3], inter, self.device))/4
+            gradient_penalty_loss = (gradient_penalty(out_inter[0], inter, self.device) + gradient_penalty(out_inter[1], inter, self.device) + gradient_penalty(out_inter[2], inter, self.device) + gradient_penalty(out_inter[3], inter, self.device) + gradient_penalty(out_inter[4], inter, self.device))/5
             #print("gradient_penalty_loss:{}".format(gradient_penalty_loss))
             d_loss = self.lambda_gan*D_adv_loss + self.lambda_gp*gradient_penalty_loss
             d_loss.backward(retain_graph=True)
@@ -297,7 +297,7 @@ class FNM(object):
             profile_224, profile_112 = profile_iter.next()
 
         profile_224, front_224, profile_112, front_112 = profile_224.to(self.device), front_224.to(self.device), profile_112.to(self.device), front_112.to(self.device)
-        D_face, D_eye, D_nose, D_mouth = self.dis(profile_224)
+        D_face, D_eye, D_nose, D_mouth, D_map = self.dis(profile_224)
         
         '''
         print("D_face.shape:", D_face.shape)

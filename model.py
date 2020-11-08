@@ -61,11 +61,13 @@ class Discriminator(nn.Module):
         self.netD_nose = PixelDiscriminator(input_dim)
         self.netD_mouth = PixelDiscriminator(input_dim)
         self.netD_face = PixelDiscriminator(input_dim)
+        self.netD_map = PixelDiscriminator(input_dim)
 
         self.liner_eye = nn.Linear(1792, 1)
         self.liner_nose = nn.Linear(1536, 1)
         self.liner_mouth = nn.Linear(768, 1)
         self.liner_face = nn.Linear(16384, 1)
+        self.liner_map = nn.Linear(43264, 1)
 
     def forward(self, x):
         ###################### Note ########################
@@ -82,6 +84,7 @@ class Discriminator(nn.Module):
         nose = x[:, :, 70:144, 88:136].clone()
         mouth = x[:, :, 144:180, 80:144].clone()
         face = x[:, :, 40:190, 34:190].clone()
+        whole_map = x.clone()
         '''
         cv2.imwrite("./demo_img/eye.jpg", cv2.cvtColor(tensor2im(eye), cv2.COLOR_BGR2RGB))
         cv2.imwrite("./demo_img/nose.jpg", cv2.cvtColor(tensor2im(nose), cv2.COLOR_BGR2RGB))
@@ -92,19 +95,22 @@ class Discriminator(nn.Module):
         D_nose = self.netD_nose(nose)
         D_mouth = self.netD_mouth(mouth)
         D_face = self.netD_face(face)
+        D_map = self.netD_map(whole_map)
 
         D_eye = self.liner_eye(D_eye.view(D_eye.shape[0], -1))
         D_nose = self.liner_nose(D_nose.view(D_nose.shape[0], -1))
         D_mouth = self.liner_mouth(D_mouth.view(D_mouth.shape[0], -1))
         D_face = self.liner_face(D_face.view(D_face.shape[0], -1))
-        return D_face, D_eye, D_nose, D_mouth
+        D_map = self.liner_map(D_map.view(D_map.shape[0], -1))
+        return D_face, D_eye, D_nose, D_mouth, D_map
 
     def get_partial_map(self, x):
         eye = x[:, :, 56:102, 44:180].clone()
         nose = x[:, :, 70:144, 88:136].clone()
         mouth = x[:, :, 144:180, 80:144].clone()
         face = x[:, :, 40:190, 34:190].clone()
-        return face, eye, nose, mouth
+        whole_map = x.clone()
+        return face, eye, nose, mouth, whole_map
 
 
 class PixelDiscriminator(nn.Module):
